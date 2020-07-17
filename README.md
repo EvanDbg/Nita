@@ -6,4 +6,4 @@ Ensoleillement
 2. Install Nita
 
 ## Compiling
-Depends on libPDDokdo, then just make package (make clean package)
+Just make package (make clean package)
