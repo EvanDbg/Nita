@@ -82,14 +82,6 @@ BOOL hasSeenLanguageCompatibilityAlert = NO;
     ]];
 
     _table.tableHeaderView = self.headerView;
-
-    NSLocale* locale = [NSLocale autoupdatingCurrentLocale];
-	NSString* code = locale.languageCode;
-
-    if (![code containsString:@"en"] && ![code containsString:@"fr"] && ![code containsString:@"de"] && !hasSeenLanguageCompatibilityAlert) {
-        [self incompatibleLanguageAlert];
-    }
-
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -112,11 +104,11 @@ BOOL hasSeenLanguageCompatibilityAlert = NO;
     HBPreferences *preferences = [[HBPreferences alloc] initWithIdentifier: @"love.litten.nitapreferences"];
     hasSeenLanguageCompatibilityAlert = [preferences objectForKey:@"hasSeenLanguageCompatibilityAlert"];
 
-    NSLocale* locale = [NSLocale autoupdatingCurrentLocale];
-	NSString* code = locale.languageCode;
+    // NSLocale* locale = [NSLocale autoupdatingCurrentLocale];
+	// NSString* code = locale.languageCode;
 
-    if (![code containsString:@"en"] && ![code containsString:@"fr"] && ![code containsString:@"de"])
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0] enabled:NO];
+    // if (![code containsString:@"en"] && ![code containsString:@"fr"] && ![code containsString:@"de"])
+    //     [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0] enabled:NO];
 
 }
 

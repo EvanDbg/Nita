@@ -1,12 +1,15 @@
 #import <UIKit/UIKit.h>
 #import <Cephei/HBPreferences.h>
-#import "libpddokdo.h"
+#import <substrate.h>
+#import "WeatherHeaders.h"
 
 HBPreferences* preferences;
 
 BOOL dpkgInvalid = NO;
 
 extern BOOL enabled;
+
+WATodayAutoupdatingLocationModel *todayUpdateModel;
 
 // Visibility
 BOOL showEmojiSwitch = YES;
@@ -22,9 +25,6 @@ BOOL refreshWeatherDataDisplayWakeSwitch = YES;
 
 @interface _UIStatusBarStringView : UILabel
 @property(nonatomic, copy)NSString* originalText;
-- (void)enEmojis;
-- (void)frEmojis;
-- (void)deEmojis;
 @end
 
 @interface SBIconController : UIViewController

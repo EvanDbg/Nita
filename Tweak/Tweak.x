@@ -4,7 +4,88 @@ BOOL enabled;
 
 NSString* conditions = nil; // weather condition which will be converted to an emoji
 NSString* weatherString = nil; // emoji will be assigned to this variable
-NSString* languageCode = nil; // language code to detect device language
+NSString* temperature = nil;
+
+static NSString* nameForCondition(int condition) {
+	MSImageRef weather = MSGetImageByName("/System/Library/PrivateFrameworks/Weather.framework/Weather");
+    CFStringRef *_weatherDescription = (CFStringRef*)MSFindSymbol(weather, "_WeatherDescription") + condition;
+    NSString *cond = (__bridge id)*_weatherDescription;
+    return [[NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/Weather.framework"] 
+				localizedStringForKey:cond value:@"" table:@"WeatherFrameworkLocalizableStrings"];
+}
+
+static NSDictionary* weatherConditionsDict() {
+    NSDictionary *conditions = [[NSDictionary alloc] initWithObjectsAndKeys: 
+		@"🌩️", /*@"SevereThunderstorm",*/ @3, 
+		@"🌧", /*@"Rain",*/ @12, 
+		@"🌩️", /*@"Thunderstorm",*/ @4, 
+		@"🌫️", /*@@"Haze",*/ @21, 
+		@"⛅", /*@"PartlyCloudyDay",*/ @30, 
+		@"🌨️", /*@"MixedRainAndSnow",*/ @5, 
+		@"🌨️", /*@"SnowFlurries",*/ @13, 
+		@"🌫️", /*@"Smoky",*/ @22, 
+		@"🌨️", /*@"MixedRainAndSleet",*/ @6, 
+		@"🌃", /*@"ClearNight",*/ @31, 
+		@"🌨️", /*@"SnowShowers",*/ @14, 
+		@"🌨️", /*@"MixedSnowAndSleet",*/ @7, 
+		@"🍃", /*@"Breezy",*/ @23, 
+		@"🌨️", /*@"ScatteredSnowShowers",*/ @40, 
+		@"☂️", /*@"FreezingDrizzle",*/ @8, 
+		@"❄️", /*@"BlowingSnow",*/ @15, 
+		@"☀️", /*@"Sunny",*/ @32, 
+		@"☂️", /*@"Drizzle",*/ @9, 
+		@"🌬️", /*@"Windy",*/ @24, 
+		@"✨", /*@"MostlySunnyNight",*/ @33, 
+		@"❄️", /*@"Snow",*/ @16, 
+		@"🌨️", /*@"HeavySnow",*/ @41, 
+		@"🥶", /*@"Frigid",*/ @25, 
+		@"🌨️", /*@"ScatteredSnowShowers",*/ @42, 
+		@"🌤", /*@"MostlySunnyDay",*/ @34, 
+		@"🧊", /*@"Hail",*/ @17, 
+		@"☃️", /*@"Blizzard",*/ @43, 
+		@"☁️", /*@"Cloudy",*/ @26, 
+		@"☔", /*@"MixedRainFall",*/ @35, 
+		@"🌨️", /*@"Sleet",*/ @18, 
+		@"⛅", /*@"PartlyCloudyDay",*/ @44, 
+		@"☁️", /*@"MostlyCloudyNight",*/ @27, 
+		@"🔥", /*@"Hot",*/ @36, 
+		@"😷", /*@"Dust",*/ @19, 
+		@"☔", /*@"HeavyRain",*/ @45, 
+		@"⛅", /*@"MostlyCloudyDay",*/ @28, 
+		@"⛈️", /*@"IsolatedThunderstorms",*/ @37, 
+		@"🌨️", /*@"SnowShowers",*/ @46, 
+		@"☁️", /*@"PartlyCloudyNight",*/ @29, 
+		@"🌧️", /*@"ScatteredShowers",*/ @38, 
+		@"⛈️", /*@"IsolatedThundershowers",*/ @47, 
+		@"⛈️", /*@"ScatteredThunderstorms",*/ @39, 
+		@"🌪️", /*@"Tornado",*/ @0, 
+		@"🌧️", /*@"FreezingRain",*/ @10, 
+		@"🌪️", /*@"TropicalStorm",*/ @1, 
+		@"🌧️", /*@"Showers1",*/ @11, 
+		@"🌀", /*@"Hurricane",*/ @2, 
+		@"🌫️", /*@"Fog",*/ @20, nil];
+    return conditions;
+}
+
+static void updateCondition() {
+	WeatherPreferences *wPrefs = [%c(WeatherPreferences) sharedPreferences];
+	todayUpdateModel = [%c(WATodayAutoupdatingLocationModel) autoupdatingLocationModelWithPreferences:wPrefs effectiveBundleIdentifier:@"com.apple.weather"];
+	[todayUpdateModel setLocationServicesActive:YES];
+	[todayUpdateModel setIsLocationTrackingEnabled:YES];
+
+	[todayUpdateModel executeModelUpdateWithCompletion:^(BOOL arg1, NSError *arg2) {
+		if (todayUpdateModel.forecastModel.city) {
+			[todayUpdateModel setIsLocationTrackingEnabled:NO];
+			if (todayUpdateModel != nil && todayUpdateModel.forecastModel.currentConditions != nil) {
+				NSNumber* conditionCode = [NSNumber numberWithUnsignedLongLong:(todayUpdateModel.forecastModel.currentConditions.conditionCode)];
+				NSDictionary* dict = weatherConditionsDict();
+				weatherString = [dict objectForKey:conditionCode] ? [[dict objectForKey:conditionCode] stringValue] : @"";
+				conditions = nameForCondition([conditionCode intValue]);
+				temperature = [NSString stringWithFormat:@"%d℃", (int)todayUpdateModel.forecastModel.city.temperature.celsius];
+			}
+		}
+	}];
+}
 
 %group Nita
 
@@ -16,21 +97,13 @@ NSString* languageCode = nil; // language code to detect device language
 
 	if (!([[self originalText] containsString:@":"] || [[self originalText] containsString:@"%"] || [[self originalText] containsString:@"3G"] || [[self originalText] containsString:@"4G"] || [[self originalText] containsString:@"5G"] || [[self originalText] containsString:@"LTE"])) {
 
-		// detect device language and convert current condition to emoji
-		if ([languageCode containsString:@"en"])
-			[self enEmojis];
-		else if ([languageCode containsString:@"fr"])
-			[self frEmojis];
-		else if ([languageCode containsString:@"de"])
-			[self deEmojis];
-
 		// assign the emoji (and optionally the temperature or only text) to the carrier
 		if (showEmojiSwitch && !showTemperatureSwitch)
 			%orig(weatherString);
 		else if (showEmojiSwitch && showTemperatureSwitch)
-			%orig([NSString stringWithFormat:@"%@ %@", weatherString, [[PDDokdo sharedInstance] currentTemperature]]); // that's why i use a variable for the condition, so i can easily add the temperature
+			%orig([NSString stringWithFormat:@"%@ %@", weatherString, temperature]); // that's why i use a variable for the condition, so i can easily add the temperature
 		else if (!showEmojiSwitch && showTemperatureSwitch)
-			%orig([NSString stringWithFormat:@"%@", [[PDDokdo sharedInstance] currentTemperature]]);
+			%orig([NSString stringWithFormat:@"%@", temperature]);
 		else
 			%orig(conditions);
 	} else {
@@ -38,275 +111,6 @@ NSString* languageCode = nil; // language code to detect device language
 	}
 
 }
-
-// libPDDokdo currently only returns the condition in the language which the device has set so i have to convert it myself
-
-// English
-%new
-- (void)enEmojis {
-
-	conditions = [[PDDokdo sharedInstance] currentConditions];
-
-	// Sunny
-	if ([conditions containsString:@"sun"] || [conditions containsString:@"Sun"]) {
-		if ([conditions isEqualToString:@"Sunny"])
-			weatherString = @"☀️";
-		else if ([conditions isEqualToString:@"Mostly Sunny"])
-			weatherString = @"🌤";
-		else
-			weatherString = @"☀️";
-		return;
-	}
-
-	// Clear
-	if ([conditions containsString:@"clear"] || [conditions containsString:@"Clear"]) {
-		if ([conditions isEqualToString:@"Clear"])
-			weatherString = @"☀";
-		else if ([conditions isEqualToString:@"Mostly Clear"])
-			weatherString = @"🌤";
-		else
-			weatherString = @"☀️";
-		return;
-	}
-
-	// Cloudy
-	if ([conditions containsString:@"cloud"] || [conditions containsString:@"Cloud"]) {
-		if ([conditions isEqualToString:@"Cloudy"])
-			weatherString = @"☁️";
-		else if ([conditions isEqualToString:@"Mostly Cloudy"])
-			weatherString = @"🌥";
-		else if ([conditions isEqualToString:@"Partly Cloudy"])
-			weatherString = @"🌤";
-		else
-			weatherString = @"☁️";
-		return;
-	}
-
-	// Rain
-	if ([conditions containsString:@"showers"] || [conditions containsString:@"Showers"] || [conditions containsString:@"rain"] || [conditions containsString:@"Rain"]) {
-		if ([conditions isEqualToString:@"Showers"])
-			weatherString = @"🌧";
-		else if ([conditions containsString:@"Rain"] || [conditions containsString:@"rain"])
-			weatherString = @"🌧";
-		else if ([conditions isEqualToString:@"Thundershowers"])
-			weatherString = @"⛈";
-		else
-			weatherString = @"🌦";
-		return;
-	}
-
-	// Snow
-	if ([conditions containsString:@"snow"] || [conditions containsString:@"Snow"]) {
-		weatherString = @"🌨";
-		return;
-	}
-
-	// Thunderstorms
-	if ([conditions containsString:@"thunder"] || [conditions containsString:@"Thunder"]) {
-		if ([conditions isEqualToString:@"Thundershowers"])
-			weatherString = @"⛈";
-		else if ([conditions containsString:@"Thunder"])
-			weatherString = @"⛈";
-		else
-			weatherString = @"⛈";
-		return;
-	}
-
-	// Tornado
-	if ([conditions containsString:@"tornado"] || [conditions containsString:@"Tornado"]) {
-		if ([conditions isEqualToString:@"Tornado"])
-			weatherString = @"🌪";
-		else
-			weatherString = @"🌪";
-		return;
-	}
-
-	// Fog
-	if ([conditions containsString:@"fog"] || [conditions containsString:@"Fog"]) {
-		if ([conditions containsString:@"Fog"])
-			weatherString = @"🌫";
-		else
-			weatherString = @"🌫";
-		return;
-	}
-
-}
-
-// French
-%new
-- (void)frEmojis {
-
-	conditions = [[PDDokdo sharedInstance] currentConditions];
-
-	// Sunny
-	if ([conditions containsString:@"Ensoleillé"] || [conditions containsString:@"ensoleillé"]) {
-		if ([conditions isEqualToString:@"Ensoleillé"])
-			weatherString = @"☀️";
-		else if ([conditions isEqualToString:@"Plutôt ensoleillé"])
-			weatherString = @"🌤";
-		else
-			weatherString = @"☀️";
-		return;
-	}
-
-	// Clear
-	if ([conditions containsString:@"Dégagé"] || [conditions containsString:@"dégagé"]) {
-		if ([conditions isEqualToString:@"Dégagé"])
-			weatherString = @"☀";
-		else if ([conditions isEqualToString:@"Ciel plutôt dégagé"])
-			weatherString = @"🌤";
-		else
-			weatherString = @"☀️";
-		return;
-	}
-
-	// Cloudy
-	if ([conditions containsString:@"Nuage"] || [conditions containsString:@"nuage"] || [conditions containsString:@"Belles éclaircies"]) {
-		if ([conditions isEqualToString:@"Nuageux"])
-			weatherString = @"☁️";
-		else if ([conditions isEqualToString:@"Nuages prédominants"])
-			weatherString = @"🌥";
-		else if ([conditions isEqualToString:@"Quelques nuages"])
-			weatherString = @"🌤";
-		else if  ([conditions isEqualToString:@"Belles éclaircies"])
-			weatherString = @"🌤";
-		else
-			weatherString = @"☁️";
-		return;
-	}
-
-	// Rain
-	if ([conditions containsString:@"pluie"] || [conditions containsString:@"Pluie"] || [conditions containsString:@"averses"] || [conditions containsString:@"Averses"]) {
-		if ([conditions isEqualToString:@"Averses"])
-			weatherString = @"🌧";
-		else if ([conditions isEqualToString:@"Averses orageuses"])
-			weatherString = @"⛈";
-		else if ([conditions isEqualToString:@"Pluie"])
-			weatherString = @"🌧";
-		else
-			weatherString = @"🌦";
-		return;
-	}
-
-	// Snow
-	if ([conditions containsString:@"neige"] || [conditions containsString:@"Neige"]) {
-		weatherString = @"🌨";
-		return;
-	}
-
-	// Thunderstorms
-	if ([conditions containsString:@"orage"] || [conditions containsString:@"Orage"]) {
-		if ([conditions containsString:@"Orages"])
-			weatherString = @"⛈";
-		else
-			weatherString = @"⛈";
-		return;
-	}
-
-	// Tornado
-	if ([conditions containsString:@"tornade"] || [conditions containsString:@"Tornade"]) {
-		if ([conditions isEqualToString:@"Tornade"])
-			weatherString = @"🌪";
-		else
-			weatherString = @"🌪";
-		return;
-	}
-
-	// Fog
-	if ([conditions containsString:@"brumeux"] || [conditions containsString:@"Brumeux"]) {
-		weatherString = @"🌫";
-		return;
-	}
-
-}
-
-// German
-%new
-- (void)deEmojis {
-
-	conditions = [[PDDokdo sharedInstance] currentConditions];
-
-	// Sunny
-	if ([conditions containsString:@"sonn"] || [conditions containsString:@"Sonn"]) {
-		if ([conditions isEqualToString:@"Sonnig"])
-			weatherString = @"☀️";
-		else if ([conditions isEqualToString:@"Meist sonnig"])
-			weatherString = @"🌤";
-		else
-			weatherString = @"☀️";
-		return;
-	}
-
-	// Clear
-	if ([conditions containsString:@"wolken"] || [conditions containsString:@"Wolken"]) {
-		if ([conditions isEqualToString:@"Wolkenlos"])
-			weatherString = @"☀";
-		else if ([conditions isEqualToString:@"Meist Wolkenlos"])
-			weatherString = @"🌤";
-		else
-			weatherString = @"☀️";
-		return;
-	}
-
-	// Cloudy
-	if ([conditions containsString:@"wölkt"]) {
-		if ([conditions isEqualToString:@"Bewölkt"])
-			weatherString = @"☁️";
-		else if ([conditions isEqualToString:@"Meist bewölkt"])
-			weatherString = @"🌥";
-		else if ([conditions isEqualToString:@"Teilweise bewölkt"])
-			weatherString = @"🌤";
-		else
-			weatherString = @"☁️";
-		return;
-	}
-
-	// Rain
-	if ([conditions containsString:@"regen"] || [conditions containsString:@"Regen"] || [conditions containsString:@"schauer"] || [conditions containsString:@"Schauer"]) {
-		if ([conditions isEqualToString:@"Regen"])
-			weatherString = @"🌧";
-		else if ([conditions isEqualToString:@"Schauer"])
-			weatherString = @"🌧";
-		else
-			weatherString = @"🌦";
-		return;
-	}
-
-	// Snow
-	if ([conditions containsString:@"schnee"] || [conditions containsString:@"Schnee"]) {
-		weatherString = @"🌨";
-		return;
-	}
-
-	// Thunderstorms
-	if ([conditions containsString:@"gewitter"] || [conditions containsString:@"Gewitter"]) {
-		if ([conditions containsString:@"Gewitter"])
-			weatherString = @"⛈";
-		else
-			weatherString = @"⛈";
-		return;
-	}
-
-	// Tornado
-	if ([conditions containsString:@"wirbelsturm"] || [conditions containsString:@"Wirbelsturm"]) {
-		if ([conditions isEqualToString:@"Wirbelsturm"])
-			weatherString = @"🌪";
-		else
-			weatherString = @"🌪";
-		return;
-	}
-
-	// Fog
-	if ([conditions containsString:@"nebel"] || [conditions containsString:@"Nebel"]) {
-		if ([conditions isEqualToString:@"Nebel"])
-			weatherString = @"🌫";
-		else
-			weatherString = @"🌫";
-		return;
-	}
-
-}
-
 %end
 
 // Hide Breadcrumbs
@@ -346,7 +150,7 @@ NSString* languageCode = nil; // language code to detect device language
 	%orig;
 
 	if (refreshWeatherDataControlCenterSwitch)
-		[[PDDokdo sharedInstance] refreshWeatherData];
+		updateCondition();
 
 }
 
@@ -359,7 +163,7 @@ NSString* languageCode = nil; // language code to detect device language
 	%orig;
 
 	if (refreshWeatherDataNotificationCenterSwitch)
-		[[PDDokdo sharedInstance] refreshWeatherData];
+		updateCondition();
 
 }
 
@@ -372,7 +176,7 @@ NSString* languageCode = nil; // language code to detect device language
 	%orig;
 
 	if (source != 26 && refreshWeatherDataDisplayWakeSwitch)
-		[[PDDokdo sharedInstance] refreshWeatherData];
+		updateCondition();
 
 }
 
@@ -444,8 +248,6 @@ NSString* languageCode = nil; // language code to detect device language
         );
 
         if (ok && [@"litten" isEqualToString:@"litten"]) {
-			NSLocale* locale = [NSLocale autoupdatingCurrentLocale];
-			languageCode = locale.languageCode;
 			%init(Nita);
             return;
         } else {
