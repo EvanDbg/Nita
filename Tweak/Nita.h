@@ -17,6 +17,7 @@ BOOL showTemperatureSwitch = NO;
 
 // Miscellaneous
 BOOL hideBreadcrumbsSwitch = YES;
+BOOL hideLocationServiceIconSwitch = YES;
 
 // Data Refreshing
 BOOL refreshWeatherDataControlCenterSwitch = YES;
@@ -28,4 +29,8 @@ BOOL refreshWeatherDataDisplayWakeSwitch = YES;
 @end
 
 @interface SBIconController : UIViewController
+@end
+
+@interface UIStatusBarItem : NSObject
++(id)itemWithType:(int)arg1 idiom:(long long)arg2;
 @end

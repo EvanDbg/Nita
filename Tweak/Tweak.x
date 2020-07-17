@@ -107,9 +107,26 @@ static void updateCondition() {
 		else
 			%orig(conditions);
 	} else {
-		%orig;
+		if (showEmojiSwitch && [[self originalText] containsString:@":"]) {
+			%orig([NSString stringWithFormat:@"%@ %@", [self originalText], weatherString]);
+		} else {
+			%orig;
+		}
 	}
+}
+%end
 
+// Hide LocationService icon
+
+%hook SBStatusBarStateAggregator
+-(BOOL)_setItem:(int)index enabled:(BOOL)enableItem {
+
+	UIStatusBarItem *item = [%c(UIStatusBarItem) itemWithType:index idiom:0];
+
+	if (hideLocationServiceIconSwitch && [item.description containsString:@"Location"]) {
+		return %orig(index, NO);
+	}
+	return %orig;
 }
 %end
 
@@ -235,6 +252,8 @@ static void updateCondition() {
 
 	// Miscellaneous
 	[preferences registerBool:&hideBreadcrumbsSwitch default:YES forKey:@"hideBreadcrumbs"];
+	[preferences registerBool:&hideLocationServiceIconSwitch default:YES forKey:@"hideLocationServiceIcon"];
+	
 
 	// Data Refreshing
 	[preferences registerBool:&refreshWeatherDataControlCenterSwitch default:YES forKey:@"refreshWeatherDataControlCenter"];
