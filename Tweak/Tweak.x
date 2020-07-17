@@ -107,7 +107,7 @@ static void updateCondition() {
 		else
 			%orig(conditions);
 	} else {
-		if (showEmojiSwitch && [[self originalText] containsString:@":"]) {
+		if (showEmojiAfterTimeSwitch && [[self originalText] containsString:@":"]) {
 			%orig([NSString stringWithFormat:@"%@ %@", [self originalText], weatherString]);
 		} else {
 			%orig;
@@ -246,9 +246,12 @@ static void updateCondition() {
 
     [preferences registerBool:&enabled default:nil forKey:@"Enabled"];
 
-	// Visibility
+	// Visibility(Carrier)
 	[preferences registerBool:&showEmojiSwitch default:YES forKey:@"showEmoji"];
 	[preferences registerBool:&showTemperatureSwitch default:NO forKey:@"showTemperature"];
+
+	// Visibility(Time)
+	[preferences registerBool:&showEmojiAfterTimeSwitch default:YES forKey:@"showEmojiAfterTime"];
 
 	// Miscellaneous
 	[preferences registerBool:&hideBreadcrumbsSwitch default:YES forKey:@"hideBreadcrumbs"];

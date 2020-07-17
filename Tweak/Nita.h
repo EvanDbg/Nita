@@ -11,9 +11,12 @@ extern BOOL enabled;
 
 WATodayAutoupdatingLocationModel *todayUpdateModel;
 
-// Visibility
+// Visibility(Carrier)
 BOOL showEmojiSwitch = YES;
 BOOL showTemperatureSwitch = NO;
+
+// Visibility(Time)
+BOOL showEmojiAfterTimeSwitch = YES;
 
 // Miscellaneous
 BOOL hideBreadcrumbsSwitch = YES;

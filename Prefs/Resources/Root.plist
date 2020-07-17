@@ -24,7 +24,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Visibility</string>
+			<string>Visibility(Carrier)</string>
 			<key>footerText</key>
 			<string>Disable Both Options To Show Only Text</string>
 			<key>isStaticText</key>
@@ -55,6 +55,29 @@
 			<string>showTemperature</string>
 			<key>label</key>
 			<string>Show Temperature</string>
+			<key>PostNotification</key>
+			<string>love.litten.nitapreferences/ReloadPrefs</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Visibility(Time)</string>
+			<key>isStaticText</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.nitapreferences</string>
+			<key>key</key>
+			<string>showEmojiAfterTime</string>
+			<key>label</key>
+			<string>Show Emoji After Time</string>
 			<key>PostNotification</key>
 			<string>love.litten.nitapreferences/ReloadPrefs</string>
 		</dict>
