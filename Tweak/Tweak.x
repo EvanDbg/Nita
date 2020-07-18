@@ -88,31 +88,30 @@ static void updateCondition() {
 }
 
 %group Nita
+// carrier
+%hook _UIStatusBarDataCellularEntry
+- (void)setString: (NSString*)arg1 {
+    if (showEmojiSwitch && !showTemperatureSwitch)
+        %orig(weatherString);
+    else if (showEmojiSwitch && showTemperatureSwitch)
+        %orig([NSString stringWithFormat:@"%@ %@", weatherString, temperature]);
+    else if (!showEmojiSwitch && showTemperatureSwitch)
+        %orig([NSString stringWithFormat:@"%@", temperature]);
+    else
+        %orig(conditions);
+}
+%end
 
 %hook _UIStatusBarStringView
-
 - (void)setText:(id)arg1 {
 
 	%orig; // making sure originalText is being initialized before comparing it
 
-	if (!([[self originalText] containsString:@":"] || [[self originalText] containsString:@"%"] || [[self originalText] containsString:@"3G"] || [[self originalText] containsString:@"4G"] || [[self originalText] containsString:@"5G"] || [[self originalText] containsString:@"LTE"])) {
-
-		// assign the emoji (and optionally the temperature or only text) to the carrier
-		if (showEmojiSwitch && !showTemperatureSwitch)
-			%orig(weatherString);
-		else if (showEmojiSwitch && showTemperatureSwitch)
-			%orig([NSString stringWithFormat:@"%@ %@", weatherString, temperature]); // that's why i use a variable for the condition, so i can easily add the temperature
-		else if (!showEmojiSwitch && showTemperatureSwitch)
-			%orig([NSString stringWithFormat:@"%@", temperature]);
-		else
-			%orig(conditions);
-	} else {
-		if (showEmojiAfterTimeSwitch && [[self originalText] containsString:@":"]) {
-			%orig([NSString stringWithFormat:@"%@ %@", [self originalText], weatherString]);
-		} else {
-			%orig;
-		}
-	}
+    if (showEmojiAfterTimeSwitch && [[self originalText] containsString:@":"]) {
+        %orig([NSString stringWithFormat:@"%@ %@", [self originalText], weatherString]);
+    } else {
+        %orig;
+    }
 }
 %end
 
