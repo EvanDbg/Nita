@@ -30,10 +30,10 @@ static NSDictionary* weatherConditionsDict() {
 		@"🌨️", /*@"MixedSnowAndSleet",*/ @7, 
 		@"🍃", /*@"Breezy",*/ @23, 
 		@"🌨️", /*@"ScatteredSnowShowers",*/ @40, 
-		@"☂️", /*@"FreezingDrizzle",*/ @8, 
+		@"🥶", /*@"FreezingDrizzle",*/ @8, 
 		@"❄️", /*@"BlowingSnow",*/ @15, 
 		@"☀️", /*@"Sunny",*/ @32, 
-		@"☂️", /*@"Drizzle",*/ @9, 
+		@"🌧️", /*@"Drizzle",*/ @9, 
 		@"🌬️", /*@"Windy",*/ @24, 
 		@"✨", /*@"MostlySunnyNight",*/ @33, 
 		@"❄️", /*@"Snow",*/ @16, 
@@ -62,7 +62,7 @@ static NSDictionary* weatherConditionsDict() {
 		@"🌧️", /*@"FreezingRain",*/ @10, 
 		@"🌪️", /*@"TropicalStorm",*/ @1, 
 		@"🌧️", /*@"Showers1",*/ @11, 
-		@"🌀", /*@"Hurricane",*/ @2, 
+		@"🌪️", /*@"Hurricane",*/ @2, 
 		@"🌫️", /*@"Fog",*/ @20, nil];
     return conditions;
 }
