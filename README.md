@@ -7,3 +7,6 @@ Ensoleillement
 
 ## Compiling
 Just make package (make clean package)
+
+## Special thanks
+Lovely Litten
