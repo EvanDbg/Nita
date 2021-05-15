@@ -31,7 +31,6 @@ jobs:
           sudo git clone https://github.com/EvanDbg/XcodeDefaultOb.git ../XcodeDefaultOb
           pwd
           ls -la
-          cd ../BigBangEv
           pwd
           sudo mkdir -p $THEOS/sdks/iPhoneOS14.4.sdk
           sudo cp -r ../XcodeDefaultOb/iPhoneOS14.4.sdk/* $THEOS/sdks/iPhoneOS14.4.sdk/
